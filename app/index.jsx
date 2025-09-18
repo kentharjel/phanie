@@ -1,7 +1,9 @@
+import { Ionicons } from "@expo/vector-icons"; // 👈 import icons
 import { LinearGradient } from "expo-linear-gradient";
-import { router } from "expo-router";
-import { useState } from "react";
+import { useRouter } from "expo-router";
+import { useContext, useState } from "react";
 import {
+  Alert,
   Image,
   StyleSheet,
   Text,
@@ -9,10 +11,29 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { StoryContext } from "../contexts/storyContext";
 
 export default function SignInScreen() {
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false); // 👈 toggle state
+  const { fetchUser } = useContext(StoryContext);
+  const router = useRouter();
+
+  const handleSignIn = async () => {
+    if (!username || !password) {
+      Alert.alert("Missing Fields", "Enter username and password.");
+      return;
+    }
+
+    try {
+      const user = await fetchUser(username, password);
+      console.log("✅ Signed in as:", user.username);
+      router.push("/tabs/home"); // redirect after login
+    } catch (err) {
+      Alert.alert("Sign In Failed", err.message);
+    }
+  };
 
   return (
     <LinearGradient
@@ -22,50 +43,63 @@ export default function SignInScreen() {
       style={styles.container}
     >
       <View style={styles.inner}>
-        {/* App Logo */}
+        {/* Logo */}
         <Image
           source={require("../assets/logo/applogo.png")}
           style={styles.logo}
         />
-
-        {/* App Title */}
         <Text style={styles.title}>Story Scape</Text>
 
         {/* Card */}
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Sign In</Text>
 
-          {/* Email */}
           <TextInput
-            placeholder="Email"
+            placeholder="Username"
             placeholderTextColor="#9a7b7b"
-            value={email}
-            onChangeText={setEmail}
+            value={username}
+            onChangeText={setUsername}
             style={styles.input}
+            autoCapitalize="none"
           />
 
-          {/* Password */}
-          <TextInput
-            placeholder="Password"
-            placeholderTextColor="#9a7b7b"
-            secureTextEntry
-            value={password}
-            onChangeText={setPassword}
-            style={styles.input}
-          />
+          {/* Password field with eye toggle */}
+          <View style={styles.passwordContainer}>
+            <TextInput
+              placeholder="Password"
+              placeholderTextColor="#9a7b7b"
+              secureTextEntry={!showPassword}
+              value={password}
+              onChangeText={setPassword}
+              autoCapitalize="none"
+              style={[styles.input, { flex: 1, marginBottom: 0 }]}
+            />
+            <TouchableOpacity
+              onPress={() => setShowPassword(!showPassword)}
+              style={styles.eyeButton}
+            >
+              <Ionicons
+                name={showPassword ? "eye-off" : "eye"}
+                size={22}
+                color="#9a7b7b"
+              />
+            </TouchableOpacity>
+          </View>
 
-          {/* Button */}
-          <TouchableOpacity style={styles.button}>
+          <TouchableOpacity style={styles.button} onPress={handleSignIn}>
             <Text style={styles.buttonText}>Sign In</Text>
           </TouchableOpacity>
 
-          {/* Forgot Password */}
-          <TouchableOpacity style={styles.forgot}>
+          {/* 🔹 Forgot password link */}
+          <TouchableOpacity
+            style={styles.forgot}
+            onPress={() => Alert.alert("Oops!", "Forgot password coming soon!")}
+          >
             <Text style={styles.forgotText}>Forgot Password?</Text>
           </TouchableOpacity>
         </View>
 
-        {/* Footer */}
+        {/* 🔹 Footer link to Sign Up */}
         <View style={styles.footer}>
           <Text style={styles.footerText}>
             Don’t have an account?{" "}
@@ -135,6 +169,19 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     color: "#6b4226",
   },
+  passwordContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#fffaf5",
+    borderWidth: 1,
+    borderColor: "#f3d9ca",
+    borderRadius: 12,
+    marginBottom: 16,
+    paddingRight: 10,
+  },
+  eyeButton: {
+    paddingHorizontal: 6,
+  },
   button: {
     backgroundColor: "#f8cba6",
     borderRadius: 12,
@@ -157,12 +204,14 @@ const styles = StyleSheet.create({
     color: "#d48872",
     textAlign: "center",
     textDecorationLine: "underline",
+    fontSize: 14,
   },
   footer: {
     marginTop: 32,
   },
   footerText: {
     color: "#6b4226",
+    fontSize: 14,
   },
   footerLink: {
     fontWeight: "bold",

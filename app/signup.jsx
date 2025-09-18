@@ -1,13 +1,14 @@
 import { LinearGradient } from "expo-linear-gradient";
-import { router } from "expo-router";
+import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
-    Image,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  Alert,
+  Image,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from "react-native";
 import { useStory } from "../hooks/useStory";
 
@@ -16,12 +17,19 @@ export default function SignUpScreen() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const { createUser } = useStory()
+  const router = useRouter()
 
   const addUser = async() => {
-    await createUser({name, username, password})
-    setName('')
-    setUsername('')
-    setPassword('')
+    if(!name.trim() || !username.trim() || !password.trim()){
+      Alert.alert("Error!", "You should fill in all the blanks")
+    } else {
+      await createUser({name, username, password})
+      setName('')
+      setUsername('')
+      setPassword('')
+      Alert.alert("Success!", "You have successfully signed up.")
+      router.push('/')
+    }
   }
 
   return (
@@ -52,6 +60,7 @@ export default function SignUpScreen() {
             value={name}
             onChangeText={setName}
             style={styles.input}
+            autoCapitalize="none"
           />
 
           {/* Username */}
@@ -61,16 +70,17 @@ export default function SignUpScreen() {
             value={username}
             onChangeText={setUsername}
             style={styles.input}
+            autoCapitalize="none"
           />
 
           {/* Password */}
           <TextInput
             placeholder="Password"
             placeholderTextColor="#9a7b7b"
-            secureTextEntry
             value={password}
             onChangeText={setPassword}
             style={styles.input}
+            autoCapitalize="none"
           />
 
           {/* Button */}
